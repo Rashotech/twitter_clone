@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 class Database {
 
@@ -7,7 +8,7 @@ class Database {
     }
 
     connect() {
-        mongoose.connect('mongodb://localhost/twitter_clone', {
+        mongoose.connect(process.env.DB_LINK, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             useFindAndModify: false,

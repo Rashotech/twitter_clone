@@ -4,6 +4,7 @@ const middleware = require('./middleware');
 const path = require('path');
 const bodyParser = require('body-parser');
 var session = require('express-session');
+require('dotenv').config();
 const mongoose = require('./db');
 
 const PORT = 5000;
@@ -16,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(session({
-    secret: 'keyboard cat',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true
 }))

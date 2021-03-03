@@ -35,7 +35,8 @@ router.post('/posts', (req, res, next) => {
 
     var postData = {
         content: req.body.content,
-        postedBy: req.session.user
+        postedBy: req.session.user,
+        deviceOS: req.body.deviceOS
     }
 
     Post.create(postData)
@@ -90,7 +91,7 @@ router.post('/posts/:id/retweet', async (req, res, next) => {
 });
 
 router.post('/posts/reply', (req, res, next) => {  
-    const { content, replyTo } = req.body;
+    const { content, replyTo, deviceOS } = req.body;
 
     if(!req.body.content) {
         console.log("Content not sent");
@@ -100,6 +101,7 @@ router.post('/posts/reply', (req, res, next) => {
     var postData = {
         content: content,
         postedBy: req.session.user,
+        deviceOS: deviceOS,
         replyTo: replyTo
     }
 

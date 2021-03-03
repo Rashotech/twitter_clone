@@ -21,7 +21,8 @@ $("#submitPostButton").click(event => {
     var textbox = $("#postTextarea");
 
     var data = {
-        content: textbox.val()
+        content: textbox.val(),
+        deviceOS: getOS()
     }
 
     $.post("/api/posts", data, (postData, status, xhr) => {
@@ -40,7 +41,8 @@ $("#submitReplyButton").click(event => {
 
     var data = {
         content: textbox.val(),
-        replyTo: id
+        replyTo: id,
+        deviceOS: getOS()
     }
 
     $.post("/api/posts/reply", data, (postData) => {
@@ -115,7 +117,7 @@ function getPostIdFromElement(element) {
     return postId
 }
 
-function createPostHtml(postData) {
+function createPostHtml(postData, largeFont = false) {
 
     var mainPost = postData.metadata !== undefined
     var isRetweet = postData.retweetData !== undefined;
@@ -135,6 +137,7 @@ function createPostHtml(postData) {
 
     var likeButtonActiveClass = postData.likes.includes(userLoggedIn._id) ? "active" : "";
     var retweetButtonActiveClass = postData.retweetUsers.includes(userLoggedIn._id) ? "active" : ""
+    var largeFontClass = largeFont ? "largeFont" : "";
 
     var retweetText = '';
 
@@ -163,17 +166,16 @@ function createPostHtml(postData) {
     }
 
     var metadata = "";
-    if(mainPost) {
-        $('.date').hide(); 
+    if(largeFont) {
         metadata = `
         <div class='metadata'>
-        ${moment(new Date(postData.createdAt)).format("LT")} - ${moment(new Date(postData.createdAt)).format("l")} - <span id="meta">Twitter for ${getOS()}</span>
+        ${moment(new Date(postData.createdAt)).format("LT")} - ${moment(new Date(postData.createdAt)).format("l")} - <span id="meta">Twitter for ${postData.deviceOS}</span>
         </div>
          `
     }
 
     return `
-            <div data-id='${postData._id}' class="post">
+            <div data-id='${postData._id}' class="post ${largeFontClass}">
                 <div class="postActionContainer">
                     ${retweetText}
                 </div>
@@ -243,7 +245,7 @@ function outputPostsWithReplies(results, container) {
         container.append(html);
     }
 
-    var mainPostHtml = createPostHtml(results.postData);
+    var mainPostHtml = createPostHtml(results.postData, true);
     container.append(mainPostHtml);
 
     results.replies.forEach(result => {
@@ -285,7 +287,7 @@ function getOS() {
     if (macosPlatforms.indexOf(platform) !== -1) {
       os = 'Mac OS';
     } else if (iosPlatforms.indexOf(platform) !== -1) {
-      os = 'iOS';
+      os = 'iPhone';
     } else if (windowsPlatforms.indexOf(platform) !== -1) {
       os = 'Windows';
     } else if (/Android/.test(userAgent)) {

@@ -86,12 +86,21 @@ $(document).on("click", ".retweetButton", (event) => {
     })
 });
 
+$(document).on("click", ".post", (event) => {
+    var element = $(event.target);
+    var postId = getPostIdFromElement(element);
+    
+    if(postId !== undefined && !element.is('button')) {
+        window.location.href = '/post/' + postId;
+    }
+});
+
 $("#replyModal").on("show.bs.modal", (event) => {
     var button = $(event.relatedTarget);
     const postId = getPostIdFromElement(button);
     $("#submitReplyButton").attr("data-id", postId)
     $.get("/api/posts/" + postId, results => {
-        outputPosts(results, $("#originalPostContainer"))
+        outputPosts(results.postData, $("#originalPostContainer"))
     })
 });
 
@@ -108,6 +117,7 @@ function getPostIdFromElement(element) {
 
 function createPostHtml(postData) {
 
+    var mainPost = postData.metadata !== undefined
     var isRetweet = postData.retweetData !== undefined;
     var retweetedBy = isRetweet ? postData.postedBy.username : null;
 
@@ -138,7 +148,7 @@ function createPostHtml(postData) {
 
     var replyFlag = '';
 
-    if(postData.replyTo) {
+    if(postData.replyTo && postData.replyTo._id) {
         if(!postData.replyTo._id) {
             return alert("REply is not populated")
         }
@@ -150,6 +160,16 @@ function createPostHtml(postData) {
                         Replying to <a href="/profile/${replyToUsername}">@${replyToUsername}</a>
                     </div>
                     `
+    }
+
+    var metadata = "";
+    if(mainPost) {
+        $('.date').hide(); 
+        metadata = `
+        <div class='metadata'>
+        ${moment(new Date(postData.createdAt)).format("LT")} - ${moment(new Date(postData.createdAt)).format("l")} - <span id="meta">Twitter for ${getOS()}</span>
+        </div>
+         `
     }
 
     return `
@@ -190,6 +210,7 @@ function createPostHtml(postData) {
                                 </button>
                             </div>
                         </div>
+                        ${metadata}
                     </div>
                 </div>
             </div>
@@ -213,6 +234,24 @@ function outputPosts(results, container) {
     }
 }
 
+function outputPostsWithReplies(results, container) {
+    results.postData.metadata = true
+    container.html("");
+
+    if (results.replyTo !== undefined && results.replyTo._id !==undefined) {
+        var html = createPostHtml(results.replyTo);
+        container.append(html);
+    }
+
+    var mainPostHtml = createPostHtml(results.postData);
+    container.append(mainPostHtml);
+
+    results.replies.forEach(result => {
+        var html = createPostHtml(result);
+        container.append(html);
+    });
+}
+
 function timeSince(timeStamps) {
     var timeStamp = new Date(timeStamps)
   var now = new Date(),
@@ -234,4 +273,29 @@ function timeSince(timeStamps) {
     return day + " " + month + year;
   }
 }
+
+function getOS() {
+    var userAgent = window.navigator.userAgent,
+        platform = window.navigator.platform,
+        macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'],
+        windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'],
+        iosPlatforms = ['iPhone', 'iPad', 'iPod'],
+        os = null;
+  
+    if (macosPlatforms.indexOf(platform) !== -1) {
+      os = 'Mac OS';
+    } else if (iosPlatforms.indexOf(platform) !== -1) {
+      os = 'iOS';
+    } else if (windowsPlatforms.indexOf(platform) !== -1) {
+      os = 'Windows';
+    } else if (/Android/.test(userAgent)) {
+      os = 'Android';
+    } else if (!os && /Linux/.test(platform)) {
+      os = 'Linux';
+    }
+  
+    return os;
+}
+
+  
 

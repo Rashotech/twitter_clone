@@ -7,7 +7,7 @@ var session = require('express-session');
 require('dotenv').config();
 const mongoose = require('./db');
 
-const PORT = 5000 || process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 app.set("view engine", "pug");
 app.set("views, views")
